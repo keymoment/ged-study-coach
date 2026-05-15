@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GED Spaced Repetition Study Tool</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-2: #11141b;
+    --card: #161a23;
+    --card-2: #1c2230;
+    --border: #262c3a;
+    --border-soft: #1f2532;
+    --text: #e7ebf3;
+    --text-dim: #9aa3b6;
+    --text-faint: #6b7488;
+    --accent: #7c6cff;
+    --accent-2: #5b8cff;
+    --accent-glow: rgba(124, 108, 255, 0.35);
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --green-bg: rgba(52, 211, 153, 0.14);
+    --yellow-bg: rgba(251, 191, 36, 0.14);
+    --red-bg: rgba(248, 113, 113, 0.14);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font);
+    background:
+      radial-gradient(900px 600px at 80% -10%, rgba(124, 108, 255, 0.10), transparent 60%),
+      radial-gradient(800px 600px at 0% 0%, rgba(91, 140, 255, 0.08), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100%;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* Header */
+  header.app {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center;
+    font-size: 22px;
+    box-shadow: 0 6px 20px var(--accent-glow);
+  }
+  .brand h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand p { font-size: 13px; color: var(--text-dim); }
+
+  .btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none;
+    box-shadow: 0 6px 22px var(--accent-glow);
+  }
+  .btn.primary:hover { filter: brightness(1.07); }
+  .btn.ghost { background: transparent; }
+  .btn.danger { color: var(--red); border-color: var(--border); }
+  .btn.danger:hover { border-color: var(--red); background: var(--red-bg); }
+  .btn.sm { padding: 7px 12px; font-size: 13px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+  }
+  .stat .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+  .stat .value { font-size: 28px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+  .stat .sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .stat .value .unit { font-size: 15px; color: var(--text-dim); font-weight: 600; }
+
+  /* Section heading */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 8px 0 14px; gap: 12px; flex-wrap: wrap;
+  }
+  .section-head h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .section-head .hint { font-size: 13px; color: var(--text-dim); }
+
+  /* Topic list */
+  .topics { display: flex; flex-direction: column; gap: 10px; }
+  .topic {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px 18px;
+    align-items: center;
+    transition: border-color 0.15s ease, transform 0.08s ease;
+  }
+  .topic:hover { border-color: var(--border); }
+  .topic.due { border-color: rgba(124, 108, 255, 0.4); }
+  .topic .t-main { min-width: 0; }
+  .topic .t-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .topic .t-name { font-size: 15px; font-weight: 700; }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge.due { background: var(--accent-glow); color: #cdc6ff; }
+  .badge.soon { background: rgba(91,140,255,0.16); color: #a9c2ff; }
+  .badge.ok { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+  .badge.flag { background: var(--red-bg); color: var(--red); }
+
+  .bar {
+    position: relative;
+    height: 9px;
+    background: var(--bg-2);
+    border-radius: 999px;
+    margin-top: 11px;
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+  }
+  .bar > span {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(.22,1,.36,1);
+  }
+  .bar.red > span { background: linear-gradient(90deg, #ef4444, #f87171); }
+  .bar.yellow > span { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .bar.green > span { background: linear-gradient(90deg, #059669, #34d399); }
+
+  .topic .t-meta {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text-faint); margin-top: 9px;
+  }
+  .topic .t-meta b { color: var(--text-dim); font-weight: 600; }
+  .topic .t-side { display: flex; align-items: center; gap: 16px; }
+  .ring {
+    --p: 0;
+    width: 56px; height: 56px; border-radius: 50%;
+    background:
+      radial-gradient(closest-side, var(--card) 70%, transparent 71% 100%),
+      conic-gradient(var(--ring-c) calc(var(--p) * 1%), var(--border-soft) 0);
+    display: grid; place-items: center;
+    font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .t-actions { display: flex; gap: 8px; }
+
+  .empty {
+    text-align: center; padding: 48px 20px; color: var(--text-dim);
+    border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+
+  /* Collapsible panels */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .panel > button.panel-head {
+    width: 100%; text-align: left;
+    background: transparent; border: none; color: var(--text);
+    padding: 16px 18px; font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font);
+  }
+  .panel > button.panel-head .chev { color: var(--text-faint); transition: transform 0.2s ease; }
+  .panel.open > button.panel-head .chev { transform: rotate(90deg); }
+  .panel-body { padding: 0 18px 18px; display: none; }
+  .panel.open .panel-body { display: block; }
+
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+  input[type="text"], input[type="number"], textarea {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { width: 100%; resize: vertical; min-height: 96px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .field input[type="text"] { width: 240px; }
+  .field input[type="number"] { width: 120px; }
+  .muted { color: var(--text-dim); font-size: 13px; }
+  .muted code { background: var(--bg-2); padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+
+  /* Quiz overlay */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(5, 6, 9, 0.7);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    z-index: 50;
+    overflow-y: auto;
+  }
+  .overlay.show { display: flex; animation: fade 0.2s ease; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .quiz {
+    width: 100%; max-width: 640px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: rise 0.25s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .quiz-top {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .quiz-top .qt-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .quiz-top .topic-tag { font-weight: 700; font-size: 15px; }
+  .diff {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .diff.easy { background: var(--green-bg); color: var(--green); }
+  .diff.medium { background: var(--yellow-bg); color: var(--yellow); }
+  .diff.hard { background: var(--red-bg); color: var(--red); }
+  .quiz-progress { font-size: 13px; color: var(--text-dim); }
+  .x-btn {
+    background: transparent; border: none; color: var(--text-faint);
+    font-size: 22px; cursor: pointer; line-height: 1; padding: 4px 8px;
+  }
+  .x-btn:hover { color: var(--text); }
+
+  .quiz-body { padding: 24px 22px; }
+  .qmeter { height: 4px; background: var(--bg-2); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+  .qmeter > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.4s ease; }
+  .question { font-size: 19px; font-weight: 600; line-height: 1.45; margin-bottom: 6px; }
+  .passage {
+    background: var(--bg-2); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px;
+    font-size: 14px; color: var(--text-dim); line-height: 1.65;
+  }
+  .choices { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .choice {
+    text-align: left;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.06s ease;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--accent); }
+  .choice:active:not(:disabled) { transform: translateY(1px); }
+  .choice .key {
+    width: 24px; height: 24px; flex-shrink: 0;
+    border-radius: 7px; background: var(--bg-2);
+    display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--text-dim);
+  }
+  .choice.correct { border-color: var(--green); background: var(--green-bg); }
+  .choice.correct .key { background: var(--green); color: #06281d; }
+  .choice.wrong { border-color: var(--red); background: var(--red-bg); }
+  .choice.wrong .key { background: var(--red); color: #2a0d0d; }
+  .choice:disabled { cursor: default; }
+
+  .fib-wrap { display: flex; gap: 10px; margin-top: 18px; }
+  .fib-wrap input { flex: 1; font-size: 16px; padding: 13px 14px; }
+
+  .feedback {
+    margin-top: 20px; border-radius: var(--radius-sm);
+    padding: 16px; border: 1px solid var(--border); display: none;
+  }
+  .feedback.show { display: block; animation: fade 0.2s ease; }
+  .feedback.good { border-color: var(--green); background: var(--green-bg); }
+  .feedback.bad { border-color: var(--red); background: var(--red-bg); }
+  .feedback .fb-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .feedback .fb-ans { margin-top: 8px; font-size: 14px; }
+  .feedback .fb-exp { margin-top: 8px; font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+  .mastery-delta {
+    margin-top: 10px; font-size: 13px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .mastery-delta.up { color: var(--green); }
+  .mastery-delta.down { color: var(--red); }
+
+  .quiz-foot {
+    padding: 16px 22px; border-top: 1px solid var(--border-soft);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .quiz-foot .score { font-size: 13px; color: var(--text-dim); }
+
+  /* Results screen */
+  .results { padding: 36px 28px; text-align: center; }
+  .results .big { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; }
+  .results .big .unit { font-size: 22px; color: var(--text-dim); }
+  .results h3 { font-size: 20px; margin-bottom: 4px; }
+  .results p { color: var(--text-dim); font-size: 14px; }
+  .results .rstats { display: flex; justify-content: center; gap: 28px; margin: 24px 0 8px; }
+  .results .rstats div span { display: block; }
+  .results .rstats .rv { font-size: 22px; font-weight: 700; }
+  .results .rstats .rl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  .results .rlist { text-align: left; margin: 20px 0; display: flex; flex-direction: column; gap: 8px; }
+  .results .rlist .ri {
+    display: flex; justify-content: space-between; font-size: 13px;
+    background: var(--bg-2); padding: 10px 14px; border-radius: var(--radius-sm);
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--card-2); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 20px; border-radius: 999px;
+    font-size: 14px; font-weight: 600; box-shadow: var(--shadow);
+    opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; z-index: 80;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .footer-note { text-align: center; color: var(--text-faint); font-size: 12px; margin-top: 40px; }
+
+  /* Screenshot analyzer */
+  .key-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .key-row input[type="text"] { flex: 1; font-family: ui-monospace, monospace; font-size: 13px; letter-spacing: 0.04em; }
+  .key-row input[type="password"] { flex: 1; font-family: ui-monospace, monospace; font-size: 13px; }
+  .eye-btn {
+    background: var(--card-2); border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: var(--radius-sm); padding: 8px 10px; cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  .eye-btn:hover { border-color: var(--accent); color: var(--text); }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: rgba(124,108,255,0.06); }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-label { font-size: 15px; font-weight: 600; }
+  .drop-sub { font-size: 13px; color: var(--text-faint); margin-top: 4px; }
+  .img-preview-wrap { position: relative; margin: 14px 0 0; }
+  .img-preview-wrap img {
+    width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    max-height: 260px; object-fit: contain; background: var(--bg-2);
+  }
+  .img-clear {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.65); border: none; color: #fff;
+    border-radius: 999px; width: 28px; height: 28px; cursor: pointer;
+    font-size: 14px; display: grid; place-items: center;
+  }
+  .img-clear:hover { background: var(--red); }
+  .analyze-btn-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite; flex-shrink: 0; display: none;
+  }
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .analyze-status { font-size: 13px; color: var(--text-dim); }
+
+  .extracted-list { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .extracted-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--text-dim); margin-bottom: 4px;
+    padding: 0 2px;
+  }
+  .ext-item {
+    display: grid;
+    grid-template-columns: 22px 1fr 100px 50px;
+    gap: 10px; align-items: center;
+    background: var(--bg-2); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+  }
+  .ext-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .ext-item input[type="text"] { width: 100%; background: transparent; border-bottom: 1px solid var(--border); border-top: none; border-left: none; border-right: none; border-radius: 0; padding: 2px 4px; font-size: 14px; }
+  .ext-item input[type="text"]:focus { border-bottom-color: var(--accent); outline: none; }
+  .ext-item input[type="number"] { width: 100%; font-size: 14px; text-align: right; padding: 4px 6px; }
+  .ext-bar { height: 4px; border-radius: 999px; margin-top: 4px; transition: width 0.3s ease; }
+  .ext-mastery-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .import-extracted-btn { margin-top: 14px; }
+
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .topic { grid-template-columns: 1fr; }
+    .topic .t-side { justify-content: space-between; }
+    .field input[type="text"] { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <div class="logo">📘</div>
+      <div>
+        <h1>GED Study Coach</h1>
+        <p>Spaced repetition · adaptive quizzing</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn ghost sm" id="resetBtn" title="Clear all saved progress">Reset</button>
+      <button class="btn primary" id="startQuizBtn">▶ Start Quiz</button>
+    </div>
+  </header>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="section-head">
+    <h2>Your Topics</h2>
+    <span class="hint" id="dueHint"></span>
+  </div>
+  <div class="topics" id="topicList"></div>
+
+  <div style="height:26px"></div>
+
+  <div class="panel" id="addPanel">
+    <button class="panel-head" data-panel="addPanel">
+      <span>➕ Add a topic</span><span class="chev">›</span>
+    </button>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="field">
+          <label for="ntName">Topic name</label>
+          <input type="text" id="ntName" placeholder="e.g. Exponents" />
+        </div>
+        <div class="field">
+          <label for="ntMastery">Starting mastery %</label>
+          <input type="number" id="ntMastery" min="0" max="100" value="0" />
+        </div>
+        <button class="btn primary" id="addTopicBtn">Add topic</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="importPanel">
+    <button class="panel-head" data-panel="importPanel">
+      <span>📥 Import progress (Khan / backup)</span><span class="chev">›</span>
+    </button>
+    <div class="panel-body">
+      <p class="muted" style="margin-bottom:10px;">
+        Paste one topic per line as <code>Topic Name, mastery%</code> — or paste a JSON
+        backup exported from this tool. Matching topics are updated; new ones are added.
+      </p>
+      <textarea id="importBox" placeholder="Algebra, 62
+Fractions, 45
+Geometry, 80"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn primary" id="importBtn">Import</button>
+        <button class="btn ghost" id="exportBtn">Export backup (JSON)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="khanPanel">
+    <button class="panel-head" data-panel="khanPanel">
+      <span>📸 Import from Khan Academy screenshot</span><span class="chev">›</span>
+    </button>
+    <div class="panel-body">
+      <p class="muted" style="margin-bottom:14px;">
+        Take a screenshot of any Khan Academy progress page, drop it below, and AI will
+        extract your topic mastery levels automatically.
+      </p>
+
+      <div class="key-row">
+        <input type="password" id="apiKeyInput" placeholder="Paste your Google AI Studio API key (AIza…)" autocomplete="off" />
+        <button class="eye-btn" id="eyeBtn" title="Show/hide key">👁</button>
+      </div>
+      <p class="muted" style="margin-bottom:14px; font-size:12px;">
+        Your key is saved only in this browser.
+        Get one free at <strong>aistudio.google.com</strong>.
+      </p>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*" />
+        <div class="drop-icon">🖼️</div>
+        <div class="drop-label">Drop your Khan screenshot here</div>
+        <div class="drop-sub">or click to browse — PNG, JPG, WEBP</div>
+      </div>
+      <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none;">
+        <img id="imgPreview" src="" alt="Screenshot preview" />
+        <button class="img-clear" id="imgClear">✕</button>
+      </div>
+
+      <div class="analyze-btn-row">
+        <button class="btn primary" id="analyzeBtn" disabled>Analyze screenshot</button>
+        <div class="spinner" id="analyzeSpinner"></div>
+        <span class="analyze-status" id="analyzeStatus"></span>
+      </div>
+
+      <div class="extracted-list" id="extractedList" style="display:none;">
+        <div class="extracted-head">
+          <span id="extractedCount"></span>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="selectAllExtracted" checked /> Select all
+          </label>
+        </div>
+        <div id="extractedItems"></div>
+        <button class="btn primary import-extracted-btn" id="importExtractedBtn">
+          Import selected topics
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">
+    All progress is stored locally in your browser. Nothing is uploaded except screenshots
+    to the Gemini API when you use the screenshot analyzer.
+  </p>
+</div>
+
+<!-- Quiz overlay -->
+<div class="overlay" id="overlay">
+  <div class="quiz" id="quizCard"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   STORAGE + DATA MODEL
+   ============================================================ */
+const STORE_KEY = "ged_srs_v1";
+
+const DEFAULT_TOPICS = [
+  "Arithmetic", "Fractions", "Decimals", "Percentages", "Algebra",
+  "Geometry", "Reading Comprehension", "Writing", "Science", "Social Studies"
+];
+
+function todayStr(d = new Date()) {
+  const x = new Date(d);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+}
+function daysBetween(aStr, bStr) {
+  const a = new Date(aStr + "T00:00:00");
+  const b = new Date(bStr + "T00:00:00");
+  return Math.round((b - a) / 86400000);
+}
+
+function newTopic(name, mastery) {
+  return {
+    id: "t_" + Math.random().toString(36).slice(2, 9),
+    name: name.trim(),
+    mastery: clamp(Math.round(mastery), 0, 100),
+    lastReviewed: null,      // "YYYY-MM-DD" or null
+    reviewCount: 0,
+    correct: 0,
+    total: 0,
+    needsImmediateReview: false,
+    createdAt: todayStr()
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  let s;
+  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { s = null; }
+  if (!s || !Array.isArray(s.topics)) {
+    s = { topics: DEFAULT_TOPICS.map(n => newTopic(n, 0)), studyDates: [], streak: 0 };
+    saveState(s);
+  }
+  if (!Array.isArray(s.studyDates)) s.studyDates = [];
+  if (typeof s.streak !== "number") s.streak = 0;
+  return s;
+}
+function saveState(s = state) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(s));
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+/* ============================================================
+   SPACED REPETITION SCHEDULING
+   ============================================================ */
+// Lower mastery -> shorter interval (review sooner).
+function reviewIntervalDays(mastery) {
+  if (mastery < 30) return 1;
+  if (mastery < 50) return 2;
+  if (mastery < 75) return 4;
+  if (mastery < 90) return 8;
+  return 16;
+}
+function nextReviewDate(topic) {
+  if (!topic.lastReviewed) return todayStr();
+  const d = new Date(topic.lastReviewed + "T00:00:00");
+  d.setDate(d.getDate() + reviewIntervalDays(topic.mastery));
+  return todayStr(d);
+}
+function dueStatus(topic) {
+  if (topic.needsImmediateReview) return { due: true, label: "Review now", cls: "flag" };
+  if (!topic.lastReviewed) return { due: true, label: "New", cls: "due" };
+  const diff = daysBetween(nextReviewDate(topic), todayStr());
+  if (diff >= 0) return { due: true, label: "Due", cls: "due" };
+  if (diff === -1) return { due: false, label: "Due tomorrow", cls: "soon" };
+  return { due: false, label: "In " + (-diff) + "d", cls: "ok" };
+}
+// Priority: immediate-review first, then lowest mastery, then oldest review date.
+function priorityScore(t) {
+  const last = t.lastReviewed ? new Date(t.lastReviewed + "T00:00:00").getTime() : 0;
+  return (t.needsImmediateReview ? -1e12 : 0) + t.mastery * 1e6 + last / 1e6;
+}
+function sortedByPriority(list) {
+  return [...list].sort((a, b) => priorityScore(a) - priorityScore(b));
+}
+function difficultyFor(mastery) {
+  if (mastery < 50) return "easy";
+  if (mastery < 75) return "medium";
+  return "hard";
+}
+
+/* ============================================================
+   QUESTION GENERATORS
+   Math topics are generated procedurally (fresh every time).
+   Verbal topics draw from rotating realistic GED-style banks.
+   ============================================================ */
+const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+function shuffleChoices(correct, distractors) {
+  const set = [];
+  const seen = new Set();
+  const add = v => { const k = String(v); if (!seen.has(k)) { seen.add(k); set.push(v); } };
+  add(correct);
+  for (const d of distractors) { if (set.length >= 4) break; add(d); }
+  let guard = 0;
+  while (set.length < 4 && guard++ < 50) {
+    add(typeof correct === "number" ? correct + rnd(-6, 6) || correct + 1 : correct + " ");
+  }
+  // shuffle
+  for (let i = set.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [set[i], set[j]] = [set[j], set[i]];
+  }
+  return { choices: set.map(String), answerIndex: set.findIndex(v => String(v) === String(correct)) };
+}
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function simplify(n, d) { const g = gcd(n, d); n /= g; d /= g; if (d < 0) { n = -n; d = -d; } return [n, d]; }
+function fracStr(n, d) { [n, d] = simplify(n, d); return d === 1 ? String(n) : n + "/" + d; }
+
+/* ---- Arithmetic ---- */
+function genArithmetic(diff) {
+  if (diff === "easy") {
+    const a = rnd(12, 89), b = rnd(8, 49), op = pick(["+", "-"]);
+    const x = Math.max(a, b), y = Math.min(a, b);
+    const q = op === "+" ? `${a} + ${b}` : `${x} − ${y}`;
+    const res = op === "+" ? a + b : x - y;
+    const c = shuffleChoices(res, [res + rnd(1, 9), res - rnd(1, 9), res + 10]);
+    return { type: "mc", prompt: `What is ${q}?`, ...c, answer: String(res),
+      explanation: `${q} = ${res}. Line up place values and ${op === "+" ? "add" : "subtract"} carefully.` };
+  }
+  if (diff === "medium") {
+    const a = rnd(13, 39), b = rnd(6, 19);
+    const res = a * b;
+    const c = shuffleChoices(res, [res + a, res - b, res + 10, a + b]);
+    return { type: "mc", prompt: `What is ${a} × ${b}?`, ...c, answer: String(res),
+      explanation: `${a} × ${b} = ${res}. Break it up: ${a} × ${b} = ${a} × ${b}.` };
+  }
+  // hard: order of operations
+  const a = rnd(4, 12), b = rnd(3, 9), c0 = rnd(2, 8), d = rnd(2, 9);
+  const res = a + b * c0 - d;
+  const c = shuffleChoices(res, [(a + b) * c0 - d, a + b * (c0 - d), res + d, res - b]);
+  return { type: "mc", prompt: `Evaluate: ${a} + ${b} × ${c0} − ${d}`, ...c, answer: String(res),
+    explanation: `Order of operations: multiply first → ${b}×${c0}=${b * c0}, then ${a} + ${b * c0} − ${d} = ${res}.` };
+}
+
+/* ---- Fractions ---- */
+function genFractions(diff) {
+  if (diff === "easy") {
+    const d = pick([4, 5, 6, 8]), a = rnd(1, d - 1), b = rnd(1, d - 1);
+    const ns = a + b;
+    const ans = fracStr(ns, d);
+    const c = shuffleChoices(ans, [fracStr(a + b, d * 2), fracStr(Math.abs(a - b) || 1, d), (a + b) + "/" + (d + d)]);
+    return { type: "mc", prompt: `Add: ${a}/${d} + ${b}/${d}`, ...c, answer: ans,
+      explanation: `Same denominator: add numerators → ${a}+${b}=${a + b}, so ${a + b}/${d} = ${ans}.` };
+  }
+  if (diff === "medium") {
+    const d1 = pick([2, 3, 4, 5]), d2 = pick([3, 4, 6, 8]);
+    const a = rnd(1, d1 - 1), b = rnd(1, d2 - 1);
+    const num = a * d2 + b * d1, den = d1 * d2;
+    const ans = fracStr(num, den);
+    const c = shuffleChoices(ans, [fracStr(a + b, d1 + d2), fracStr(num, den * 2), fracStr(a * b, den)]);
+    return { type: "mc", prompt: `Add: ${a}/${d1} + ${b}/${d2}`, ...c, answer: ans,
+      explanation: `Common denominator ${den}: ${a}/${d1}=${a * d2}/${den}, ${b}/${d2}=${b * d1}/${den}. Sum = ${num}/${den} = ${ans}.` };
+  }
+  // hard: multiply / divide
+  const n1 = rnd(2, 7), d1 = rnd(2, 9), n2 = rnd(2, 7), d2 = rnd(2, 9);
+  const ans = fracStr(n1 * n2, d1 * d2);
+  const c = shuffleChoices(ans, [fracStr(n1 + n2, d1 + d2), fracStr(n1 * d2, d1 * n2), fracStr(n1 * n2, d1 + d2)]);
+  return { type: "mc", prompt: `Multiply: ${n1}/${d1} × ${n2}/${d2}`, ...c, answer: ans,
+    explanation: `Multiply across: (${n1}×${n2})/(${d1}×${d2}) = ${n1 * n2}/${d1 * d2} = ${ans}.` };
+}
+
+/* ---- Decimals ---- */
+function genDecimals(diff) {
+  if (diff === "easy") {
+    const a = (rnd(10, 99) / 10), b = (rnd(10, 99) / 10);
+    const res = +(a + b).toFixed(1);
+    const c = shuffleChoices(res, [+(a + b + 1).toFixed(1), +(a - b).toFixed(1), +(a + b + 0.1).toFixed(1)]);
+    return { type: "mc", prompt: `Add: ${a} + ${b}`, ...c, answer: String(res),
+      explanation: `Align the decimal points and add: ${a} + ${b} = ${res}.` };
+  }
+  if (diff === "medium") {
+    const a = (rnd(11, 49) / 10), b = rnd(2, 8);
+    const res = +(a * b).toFixed(2);
+    const c = shuffleChoices(res, [+(a * b + 1).toFixed(2), +(a * (b + 1)).toFixed(2), +(a + b).toFixed(2)]);
+    return { type: "mc", prompt: `Multiply: ${a} × ${b}`, ...c, answer: String(res),
+      explanation: `${a} × ${b} = ${res}. Multiply as whole numbers, then place the decimal.` };
+  }
+  // hard: round / convert
+  const v = +(rnd(1000, 9999) / 100).toFixed(2);
+  const res = Math.round(v * 10) / 10;
+  const c = shuffleChoices(res, [Math.floor(v), Math.ceil(v), +(res + 0.1).toFixed(1)]);
+  return { type: "mc", prompt: `Round ${v} to the nearest tenth.`, ...c, answer: String(res),
+    explanation: `Look at the hundredths digit to decide rounding → ${v} ≈ ${res}.` };
+}
+
+/* ---- Percentages ---- */
+function genPercentages(diff) {
+  if (diff === "easy") {
+    const p = pick([10, 20, 25, 50]), n = pick([40, 60, 80, 120, 200]);
+    const res = (p / 100) * n;
+    const c = shuffleChoices(res, [res * 2, res / 2, res + 10, n - res]);
+    return { type: "mc", prompt: `What is ${p}% of ${n}?`, ...c, answer: String(res),
+      explanation: `${p}% = ${p / 100}. ${p / 100} × ${n} = ${res}.` };
+  }
+  if (diff === "medium") {
+    const whole = pick([50, 80, 200, 25, 40]), part = whole * pick([0.1, 0.2, 0.25, 0.5]);
+    const res = Math.round((part / whole) * 100);
+    const c = shuffleChoices(res, [res + 10, res - 5, 100 - res, res * 2]);
+    return { type: "mc", prompt: `${part} is what percent of ${whole}?`, ...c, answer: res + "%",
+      explanation: `Percent = part ÷ whole × 100 = ${part} ÷ ${whole} × 100 = ${res}%.`,
+      answerNorm: String(res) };
+  }
+  // hard: discount / increase word problem
+  const price = pick([40, 60, 80, 120, 150]), disc = pick([15, 20, 25, 30]);
+  const res = +(price * (1 - disc / 100)).toFixed(2);
+  const c = shuffleChoices(res, [+(price * disc / 100).toFixed(2), price - disc, +(price * (1 + disc / 100)).toFixed(2)]);
+  return { type: "mc", prompt: `A $${price} item is ${disc}% off. What is the sale price?`, ...c, answer: "$" + res,
+    explanation: `Discount = ${disc}% of $${price} = $${(price * disc / 100).toFixed(2)}. Sale price = $${price} − that = $${res}.`,
+    answerNorm: String(res) };
+}
+
+/* ---- Algebra ---- */
+function genAlgebra(diff) {
+  if (diff === "easy") {
+    const x = rnd(2, 12), a = rnd(1, 20);
+    const b = x + a;
+    const c = shuffleChoices(x, [x + a, x - 1, b]);
+    return { type: "mc", prompt: `Solve for x:  x + ${a} = ${b}`, ...c, answer: String(x),
+      explanation: `Subtract ${a} from both sides: x = ${b} − ${a} = ${x}.` };
+  }
+  if (diff === "medium") {
+    const x = rnd(2, 9), a = rnd(2, 6), b = rnd(1, 12);
+    const rhs = a * x + b;
+    const c = shuffleChoices(x, [x + 1, rhs - b, Math.round(rhs / a)]);
+    return { type: "mc", prompt: `Solve for x:  ${a}x + ${b} = ${rhs}`, ...c, answer: String(x),
+      explanation: `Subtract ${b}: ${a}x = ${rhs - b}. Divide by ${a}: x = ${x}.` };
+  }
+  // hard: distribution
+  const x = rnd(2, 8), a = rnd(2, 5), b = rnd(1, 6);
+  const rhs = a * (x + b);
+  const c = shuffleChoices(x, [x + b, rhs / a - 1, rhs - a * b]);
+  return { type: "mc", prompt: `Solve for x:  ${a}(x + ${b}) = ${rhs}`, ...c, answer: String(x),
+    explanation: `Distribute: ${a}x + ${a * b} = ${rhs}. Then ${a}x = ${rhs - a * b}, so x = ${x}.` };
+}
+
+/* ---- Geometry ---- */
+function genGeometry(diff) {
+  if (diff === "easy") {
+    const w = rnd(3, 14), h = rnd(3, 14);
+    const area = w * h;
+    const c = shuffleChoices(area, [2 * (w + h), w + h, area + w]);
+    return { type: "mc", prompt: `A rectangle is ${w} by ${h}. What is its area?`, ...c, answer: String(area),
+      explanation: `Area of a rectangle = length × width = ${w} × ${h} = ${area}.` };
+  }
+  if (diff === "medium") {
+    const b = rnd(4, 16), h = rnd(3, 14);
+    const area = (b * h) / 2;
+    const c = shuffleChoices(area, [b * h, b + h, area + b]);
+    return { type: "mc", prompt: `A triangle has base ${b} and height ${h}. What is its area?`, ...c, answer: String(area),
+      explanation: `Area of a triangle = ½ × base × height = ½ × ${b} × ${h} = ${area}.` };
+  }
+  // hard: Pythagorean (use common triples-ish)
+  const triples = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15]];
+  const [a, b, hyp] = pick(triples);
+  const c = shuffleChoices(hyp, [a + b, hyp + 1, Math.round(Math.sqrt(a * a + b * b)) + 2]);
+  return { type: "mc", prompt: `A right triangle has legs ${a} and ${b}. What is the hypotenuse?`, ...c, answer: String(hyp),
+    explanation: `Pythagorean theorem: c² = ${a}² + ${b}² = ${a * a + b * b}, so c = √${a * a + b * b} = ${hyp}.` };
+}
+
+/* ---- Verbal banks (realistic GED-style, rotating) ---- */
+const VERBAL = {
+  "Reading Comprehension": [
+    { d: "easy", passage: "The community garden opened in spring. Within weeks, neighbors who had never spoken began trading tomatoes and advice. By summer, the lot that was once an eyesore had become the block's gathering place.",
+      prompt: "The main idea of the passage is that the garden —",
+      choices: ["produced a large tomato harvest", "brought neighbors together", "was difficult to maintain", "replaced an old building"],
+      answer: 1, explanation: "The passage emphasizes neighbors connecting and the lot becoming a 'gathering place' — a social effect, not just produce." },
+    { d: "medium", passage: "Maria hesitated at the podium. Her notes trembled in her hand. But as she met the audience's eyes and remembered why the policy mattered to families like hers, her voice steadied.",
+      prompt: "What can you infer about Maria?",
+      choices: ["She was unprepared", "She overcame her nervousness", "She disliked the audience", "She forgot her speech"],
+      answer: 1, explanation: "She starts nervous (trembling notes) but her voice 'steadied' once she focused on her purpose — she overcomes the nerves." },
+    { d: "hard", passage: "Critics argue that the new ordinance, while well-intentioned, shifts the burden of compliance onto small businesses least able to absorb it. Supporters counter that without enforcement, the rule is merely symbolic.",
+      prompt: "The author presents the issue by —",
+      choices: ["endorsing the ordinance", "showing two opposing viewpoints", "describing how to comply", "predicting the outcome"],
+      answer: 1, explanation: "The paragraph gives the critics' view and then the supporters' counter — it presents both sides without taking one." }
+  ],
+  "Writing": [
+    { d: "easy", prompt: "Choose the correctly written sentence.",
+      choices: ["Their going to the library after lunch.", "There going to the library after lunch.", "They're going to the library after lunch.", "Theyre going to the library after lunch."],
+      answer: 2, explanation: "'They're' = 'they are.' 'Their' shows possession; 'there' refers to a place." },
+    { d: "medium", prompt: "Which revision corrects the sentence? \"Each of the students have submitted their report.\"",
+      choices: ["Each of the students have submitted their report.", "Each of the students has submitted their report.", "Each of the students having submitted their report.", "Each of the student have submitted their report."],
+      answer: 1, explanation: "'Each' is singular, so it takes the singular verb 'has submitted.'" },
+    { d: "hard", prompt: "Choose the sentence with correct parallel structure.",
+      choices: ["She likes hiking, to swim, and biking.", "She likes hiking, swimming, and biking.", "She likes to hike, swimming, and to bike.", "She likes hike, swim, and biking."],
+      answer: 1, explanation: "Parallel structure keeps the same form: hiking, swimming, biking (all -ing gerunds)." }
+  ],
+  "Science": [
+    { d: "easy", prompt: "Which process do plants use to make food from sunlight?",
+      choices: ["Respiration", "Photosynthesis", "Digestion", "Condensation"],
+      answer: 1, explanation: "Photosynthesis converts sunlight, water, and CO₂ into glucose and oxygen in plants." },
+    { d: "medium", prompt: "A scientist changes only the amount of fertilizer given to plants and measures growth. The fertilizer amount is the —",
+      choices: ["dependent variable", "control group", "independent variable", "hypothesis"],
+      answer: 2, explanation: "The variable the scientist deliberately changes is the independent variable; growth (the measured result) is dependent." },
+    { d: "hard", prompt: "If a population of rabbits doubles every year, what type of growth is this?",
+      choices: ["Linear growth", "Exponential growth", "Negative growth", "Constant growth"],
+      answer: 1, explanation: "Repeated doubling is exponential growth — the rate increases as the population gets larger." }
+  ],
+  "Social Studies": [
+    { d: "easy", prompt: "Which branch of the U.S. government makes laws?",
+      choices: ["Executive", "Judicial", "Legislative", "Federal"],
+      answer: 2, explanation: "The legislative branch (Congress) writes and passes laws. The executive enforces; the judicial interprets." },
+    { d: "medium", prompt: "The system in which power is divided between national and state governments is called —",
+      choices: ["federalism", "monarchy", "anarchy", "socialism"],
+      answer: 0, explanation: "Federalism divides authority between a central (national) government and state governments." },
+    { d: "hard", prompt: "A bar graph shows unemployment rising from 4% to 9% over two years. This best supports the conclusion that —",
+      choices: ["the economy improved", "fewer people were working", "prices fell", "population doubled"],
+      answer: 1, explanation: "Rising unemployment means a larger share of the workforce is without jobs — fewer people working." }
+  ]
+};
+
+function genVerbal(topic, diff) {
+  const bank = VERBAL[topic] || [];
+  let pool = bank.filter(q => q.d === diff);
+  if (pool.length === 0) pool = bank;
+  const q = pick(pool);
+  const correctText = q.choices[q.answer];
+  const order = q.choices.map((t, i) => ({ t, i }));
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const choices = order.map(o => o.t);
+  return {
+    type: "mc",
+    passage: q.passage || null,
+    prompt: q.prompt,
+    choices,
+    answerIndex: choices.indexOf(correctText),
+    answer: correctText,
+    explanation: q.explanation
+  };
+}
+
+const MATH_GEN = {
+  "Arithmetic": genArithmetic, "Fractions": genFractions, "Decimals": genDecimals,
+  "Percentages": genPercentages, "Algebra": genAlgebra, "Geometry": genGeometry
+};
+
+function generateQuestion(topicName, diff) {
+  if (MATH_GEN[topicName]) return MATH_GEN[topicName](diff);
+  if (VERBAL[topicName]) return genVerbal(topicName, diff);
+  // Unknown custom topic: build a light self-check item.
+  return {
+    type: "mc",
+    prompt: `Self-check: How confident are you on "${topicName}" at the ${diff} level?`,
+    choices: ["I can teach it", "I know most of it", "I'm shaky", "I need to relearn it"],
+    answerIndex: 0,
+    answer: "I can teach it",
+    explanation: `Custom topics use a confidence self-check. Add "${topicName}" content by importing notes, or rename it to a built-in topic for auto-generated questions.`,
+    selfCheck: true
+  };
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function recomputeStreak() {
+  const dates = [...new Set(state.studyDates)].sort();
+  if (dates.length === 0) { state.streak = 0; return; }
+  // Count consecutive days ending today or yesterday.
+  const t = todayStr();
+  const last = dates[dates.length - 1];
+  const gap = daysBetween(last, t);
+  if (gap > 1) { state.streak = 0; return; }
+  let streak = 1;
+  for (let i = dates.length - 1; i > 0; i--) {
+    if (daysBetween(dates[i - 1], dates[i]) === 1) streak++;
+    else break;
+  }
+  state.streak = streak;
+}
+function markStudiedToday() {
+  const t = todayStr();
+  if (!state.studyDates.includes(t)) state.studyDates.push(t);
+  recomputeStreak();
+}
+function totals() {
+  let correct = 0, total = 0, reviews = 0;
+  state.topics.forEach(t => { correct += t.correct; total += t.total; reviews += t.reviewCount; });
+  return { correct, total, reviews, acc: total ? Math.round((correct / total) * 100) : 0 };
+}
+
+/* ============================================================
+   RENDER: DASHBOARD
+   ============================================================ */
+function masteryClass(m) { return m < 50 ? "red" : m < 75 ? "yellow" : "green"; }
+function masteryColorVar(m) { return m < 50 ? "var(--red)" : m < 75 ? "var(--yellow)" : "var(--green)"; }
+
+function render() {
+  recomputeStreak();
+  const tt = totals();
+  const dueCount = state.topics.filter(t => dueStatus(t).due).length;
+
+  document.getElementById("statsRow").innerHTML = `
+    <div class="stat">
+      <div class="label">Reviews</div>
+      <div class="value">${tt.reviews}</div>
+      <div class="sub">questions answered</div>
+    </div>
+    <div class="stat">
+      <div class="label">Accuracy</div>
+      <div class="value">${tt.acc}<span class="unit">%</span></div>
+      <div class="sub">${tt.correct} / ${tt.total} correct</div>
+    </div>
+    <div class="stat">
+      <div class="label">Study streak</div>
+      <div class="value">${state.streak}<span class="unit"> day${state.streak === 1 ? "" : "s"}</span></div>
+      <div class="sub">${state.streak > 0 ? "keep it going 🔥" : "study today to start"}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Due now</div>
+      <div class="value">${dueCount}<span class="unit"> / ${state.topics.length}</span></div>
+      <div class="sub">topics ready to review</div>
+    </div>`;
+
+  document.getElementById("dueHint").textContent =
+    dueCount > 0 ? `${dueCount} topic${dueCount === 1 ? "" : "s"} due — sorted weakest first`
+                 : "All caught up — review anytime";
+
+  const list = document.getElementById("topicList");
+  if (state.topics.length === 0) {
+    list.innerHTML = `<div class="empty">No topics yet. Add one below to get started.</div>`;
+    return;
+  }
+
+  list.innerHTML = sortedByPriority(state.topics).map(t => {
+    const ds = dueStatus(t);
+    const acc = t.total ? Math.round((t.correct / t.total) * 100) : null;
+    const nrd = t.lastReviewed ? nextReviewDate(t) : "—";
+    return `
+    <div class="topic ${ds.due ? "due" : ""}">
+      <div class="t-main">
+        <div class="t-top">
+          <span class="t-name">${escapeHtml(t.name)}</span>
+          <span class="badge ${ds.cls}">${ds.label}</span>
+        </div>
+        <div class="bar ${masteryClass(t.mastery)}"><span style="width:${t.mastery}%"></span></div>
+        <div class="t-meta">
+          <span><b>${t.mastery}%</b> mastery</span>
+          <span>${t.reviewCount} review${t.reviewCount === 1 ? "" : "s"}</span>
+          <span>${acc === null ? "no attempts" : acc + "% accuracy"}</span>
+          <span>last: ${t.lastReviewed || "never"}</span>
+          <span>next: ${ds.due ? "now" : nrd}</span>
+        </div>
+      </div>
+      <div class="t-side">
+        <div class="ring" style="--p:${t.mastery};--ring-c:${masteryColorVar(t.mastery)}">${t.mastery}%</div>
+        <div class="t-actions">
+          <button class="btn sm" data-quiz="${t.id}">Quiz</button>
+          <button class="btn sm ghost" data-edit="${t.id}">Edit</button>
+          <button class="btn sm danger" data-del="${t.id}">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll("[data-quiz]").forEach(b =>
+    b.addEventListener("click", () => startQuiz(b.getAttribute("data-quiz"))));
+  list.querySelectorAll("[data-edit]").forEach(b =>
+    b.addEventListener("click", () => editTopic(b.getAttribute("data-edit"))));
+  list.querySelectorAll("[data-del]").forEach(b =>
+    b.addEventListener("click", () => deleteTopic(b.getAttribute("data-del"))));
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ============================================================
+   TOPIC CRUD
+   ============================================================ */
+function addTopic() {
+  const name = document.getElementById("ntName").value.trim();
+  const mastery = parseInt(document.getElementById("ntMastery").value, 10) || 0;
+  if (!name) return toast("Enter a topic name");
+  if (state.topics.some(t => t.name.toLowerCase() === name.toLowerCase()))
+    return toast("That topic already exists");
+  state.topics.push(newTopic(name, mastery));
+  saveState(); render();
+  document.getElementById("ntName").value = "";
+  document.getElementById("ntMastery").value = "0";
+  toast(`Added "${name}"`);
+}
+function editTopic(id) {
+  const t = state.topics.find(x => x.id === id);
+  if (!t) return;
+  const name = prompt("Topic name:", t.name);
+  if (name === null) return;
+  const m = prompt("Mastery % (0–100):", t.mastery);
+  if (m === null) return;
+  t.name = name.trim() || t.name;
+  t.mastery = clamp(parseInt(m, 10) || 0, 0, 100);
+  saveState(); render(); toast("Topic updated");
+}
+function deleteTopic(id) {
+  const t = state.topics.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm(`Delete "${t.name}"? This removes its progress.`)) return;
+  state.topics = state.topics.filter(x => x.id !== id);
+  saveState(); render(); toast("Topic deleted");
+}
+
+/* ============================================================
+   QUIZ ENGINE
+   ============================================================ */
+const SESSION_LEN = 6;
+let session = null;
+
+function startQuiz(forcedTopicId) {
+  if (state.topics.length === 0) return toast("Add a topic first");
+  session = {
+    forcedTopicId: forcedTopicId || null,
+    index: 0, correct: 0,
+    perTopic: {},  // id -> {name, c, t, delta}
+    current: null,
+    lastTopicId: null, repeatRun: 0
+  };
+  document.getElementById("overlay").classList.add("show");
+  nextQuestion();
+}
+
+function chooseTopicForQuestion() {
+  if (session.forcedTopicId) {
+    return state.topics.find(t => t.id === session.forcedTopicId) || sortedByPriority(state.topics)[0];
+  }
+  const ranked = sortedByPriority(state.topics);
+  let choice = ranked[0];
+  // Keep sessions varied: don't serve the same topic more than twice in a
+  // row when another topic is available (still weakest-first overall).
+  if (ranked.length > 1 && session.lastTopicId === choice.id && session.repeatRun >= 1) {
+    choice = ranked[1];
+  }
+  session.repeatRun = session.lastTopicId === choice.id ? (session.repeatRun || 0) + 1 : 0;
+  session.lastTopicId = choice.id;
+  return choice;
+}
+
+function nextQuestion() {
+  if (session.index >= SESSION_LEN) return showResults();
+  const topic = chooseTopicForQuestion();
+  const diff = difficultyFor(topic.mastery);
+  const q = generateQuestion(topic.name, diff);
+  session.current = { topic, diff, q, answered: false };
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { topic, diff, q } = session.current;
+  const card = document.getElementById("quizCard");
+  const progressPct = Math.round((session.index / SESSION_LEN) * 100);
+
+  const choicesHtml = q.type === "mc"
+    ? `<div class="choices">${q.choices.map((c, i) =>
+        `<button class="choice" data-i="${i}">
+           <span class="key">${String.fromCharCode(65 + i)}</span>
+           <span>${escapeHtml(c)}</span>
+         </button>`).join("")}</div>`
+    : `<div class="fib-wrap">
+         <input type="text" id="fibInput" placeholder="Type your answer…" autocomplete="off" />
+         <button class="btn primary" id="fibSubmit">Submit</button>
+       </div>`;
+
+  card.innerHTML = `
+    <div class="quiz-top">
+      <div class="qt-left">
+        <span class="topic-tag">${escapeHtml(topic.name)}</span>
+        <span class="diff ${diff}">${diff}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="quiz-progress">Q ${session.index + 1} / ${SESSION_LEN}</span>
+        <button class="x-btn" id="quitQuiz" title="End session">✕</button>
+      </div>
+    </div>
+    <div class="quiz-body">
+      <div class="qmeter"><span style="width:${progressPct}%"></span></div>
+      ${q.passage ? `<div class="passage">${escapeHtml(q.passage)}</div>` : ""}
+      <div class="question">${escapeHtml(q.prompt)}</div>
+      ${choicesHtml}
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <div class="quiz-foot">
+      <span class="score">Score: ${session.correct} / ${session.index}</span>
+      <button class="btn primary" id="nextBtn" style="display:none;">Next →</button>
+    </div>`;
+
+  document.getElementById("quitQuiz").addEventListener("click", endSession);
+
+  if (q.type === "mc") {
+    card.querySelectorAll(".choice").forEach(btn =>
+      btn.addEventListener("click", () => submitAnswer(parseInt(btn.getAttribute("data-i"), 10))));
+  } else {
+    const inp = document.getElementById("fibInput");
+    inp.focus();
+    const go = () => submitAnswer(inp.value);
+    document.getElementById("fibSubmit").addEventListener("click", go);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  }
+}
+
+function normalize(v) {
+  return String(v).trim().toLowerCase().replace(/\s+/g, "").replace(/^\$/, "").replace(/%$/, "");
+}
+function isCorrect(given) {
+  const q = session.current.q;
+  if (q.type === "mc") return given === q.answerIndex;
+  const want = q.answerNorm != null ? q.answerNorm : q.answer;
+  if (normalize(given) === normalize(want)) return true;
+  const gn = parseFloat(String(given).replace(/[^0-9.\-]/g, ""));
+  const wn = parseFloat(String(want).replace(/[^0-9.\-]/g, ""));
+  return !isNaN(gn) && !isNaN(wn) && Math.abs(gn - wn) < 1e-6;
+}
+
+function submitAnswer(given) {
+  if (session.current.answered) return;
+  session.current.answered = true;
+  const { topic, q } = session.current;
+  const ok = isCorrect(given);
+
+  // Leitner mastery update
+  const before = topic.mastery;
+  if (ok) {
+    topic.mastery = clamp(topic.mastery + 5, 0, 100);
+    topic.correct += 1;
+    topic.needsImmediateReview = false;
+  } else {
+    topic.mastery = clamp(topic.mastery - 10, 0, 100);
+    topic.needsImmediateReview = true;
+  }
+  topic.total += 1;
+  topic.reviewCount += 1;
+  topic.lastReviewed = todayStr();
+  const delta = topic.mastery - before;
+
+  if (ok) session.correct += 1;
+  session.index += 1;
+  const pt = session.perTopic[topic.id] || { name: topic.name, c: 0, t: 0 };
+  pt.c += ok ? 1 : 0; pt.t += 1;
+  session.perTopic[topic.id] = pt;
+
+  markStudiedToday();
+  saveState();
+
+  // Reveal correct/wrong on choices
+  const card = document.getElementById("quizCard");
+  if (q.type === "mc") {
+    card.querySelectorAll(".choice").forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.answerIndex) btn.classList.add("correct");
+      if (!ok && i === given) btn.classList.add("wrong");
+    });
+  } else {
+    const inp = document.getElementById("fibInput");
+    if (inp) { inp.disabled = true; inp.style.borderColor = ok ? "var(--green)" : "var(--red)"; }
+    const sb = document.getElementById("fibSubmit");
+    if (sb) sb.disabled = true;
+  }
+
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback show " + (ok ? "good" : "bad");
+  fb.innerHTML = `
+    <div class="fb-title">${ok ? "✓ Correct" : "✗ Not quite"}</div>
+    ${ok ? "" : `<div class="fb-ans"><b>Answer:</b> ${escapeHtml(q.answer)}</div>`}
+    <div class="fb-exp">${escapeHtml(q.explanation)}</div>
+    <div class="mastery-delta ${delta >= 0 ? "up" : "down"}">
+      ${delta >= 0 ? "▲" : "▼"} ${escapeHtml(topic.name)} mastery ${before}% → ${topic.mastery}%
+      ${!ok ? " · flagged for immediate review" : ""}
+    </div>`;
+
+  const nb = document.getElementById("nextBtn");
+  nb.style.display = "inline-block";
+  nb.textContent = session.index >= SESSION_LEN ? "See results →" : "Next →";
+  nb.focus();
+  nb.addEventListener("click", nextQuestion);
+  document.querySelector(".quiz-foot .score").textContent = `Score: ${session.correct} / ${session.index}`;
+  render(); // live-update dashboard underneath
+}
+
+function showResults() {
+  const card = document.getElementById("quizCard");
+  const pct = Math.round((session.correct / SESSION_LEN) * 100);
+  const msg = pct >= 80 ? "Excellent work! 🎯" : pct >= 50 ? "Solid progress — keep going." : "Tough set — that's how mastery is built.";
+  const rows = Object.values(session.perTopic).map(p =>
+    `<div class="ri"><span>${escapeHtml(p.name)}</span><span>${p.c}/${p.t} correct</span></div>`).join("");
+  card.innerHTML = `
+    <div class="results">
+      <div class="big">${pct}<span class="unit">%</span></div>
+      <h3>Session complete</h3>
+      <p>${msg}</p>
+      <div class="rstats">
+        <div><span class="rv">${session.correct}/${SESSION_LEN}</span><span class="rl">Correct</span></div>
+        <div><span class="rv">${state.streak}</span><span class="rl">Day streak</span></div>
+        <div><span class="rv">${totals().acc}%</span><span class="rl">Overall acc</span></div>
+      </div>
+      <div class="rlist">${rows}</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;">
+        <button class="btn primary" id="againBtn">Study again</button>
+        <button class="btn ghost" id="doneBtn">Done</button>
+      </div>
+    </div>`;
+  document.getElementById("againBtn").addEventListener("click", () => startQuiz(session.forcedTopicId));
+  document.getElementById("doneBtn").addEventListener("click", endSession);
+  render();
+}
+
+function endSession() {
+  document.getElementById("overlay").classList.remove("show");
+  session = null;
+  render();
+}
+
+/* ============================================================
+   IMPORT / EXPORT
+   ============================================================ */
+function importData() {
+  const raw = document.getElementById("importBox").value.trim();
+  if (!raw) return toast("Paste data first");
+  let added = 0, updated = 0;
+
+  // Try JSON backup first
+  try {
+    const j = JSON.parse(raw);
+    if (j && Array.isArray(j.topics)) {
+      j.topics.forEach(it => {
+        if (!it.name) return;
+        const ex = state.topics.find(t => t.name.toLowerCase() === String(it.name).toLowerCase());
+        if (ex) { Object.assign(ex, it, { id: ex.id }); updated++; }
+        else { state.topics.push(Object.assign(newTopic(it.name, it.mastery || 0), it, { id: newTopic("x", 0).id })); added++; }
+      });
+      finishImport(added, updated); return;
+    }
+  } catch (e) { /* not JSON, fall through */ }
+
+  // Line format: "Name, mastery"
+  raw.split(/\r?\n/).forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    const m = line.match(/^(.+?)[,:\t]\s*(\d{1,3})\s*%?$/)
+            || line.match(/^(.+?)\s+(\d{1,3})\s*%?$/);
+    let name, mastery;
+    if (m) { name = m[1].trim(); mastery = clamp(parseInt(m[2], 10), 0, 100); }
+    else { name = line; mastery = 0; }
+    const ex = state.topics.find(t => t.name.toLowerCase() === name.toLowerCase());
+    if (ex) { ex.mastery = mastery; updated++; }
+    else { state.topics.push(newTopic(name, mastery)); added++; }
+  });
+  finishImport(added, updated);
+}
+function finishImport(added, updated) {
+  saveState(); render();
+  document.getElementById("importBox").value = "";
+  toast(`Imported — ${added} added, ${updated} updated`);
+}
+function exportData() {
+  const blob = JSON.stringify(state, null, 2);
+  navigator.clipboard?.writeText(blob).then(
+    () => toast("Backup JSON copied to clipboard"),
+    () => { document.getElementById("importBox").value = blob; toast("Backup placed in the box above"); }
+  );
+}
+
+/* ============================================================
+   MISC UI
+   ============================================================ */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+document.querySelectorAll(".panel-head").forEach(h =>
+  h.addEventListener("click", () => document.getElementById(h.getAttribute("data-panel")).classList.toggle("open")));
+
+document.getElementById("startQuizBtn").addEventListener("click", () => startQuiz(null));
+document.getElementById("addTopicBtn").addEventListener("click", addTopic);
+document.getElementById("ntName").addEventListener("keydown", e => { if (e.key === "Enter") addTopic(); });
+document.getElementById("importBtn").addEventListener("click", importData);
+document.getElementById("exportBtn").addEventListener("click", exportData);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("Reset ALL progress and restore the default GED topics?")) return;
+  localStorage.removeItem(STORE_KEY);
+  state = loadState();
+  render();
+  toast("Progress reset");
+});
+document.getElementById("overlay").addEventListener("click", e => {
+  if (e.target.id === "overlay" && session) {
+    if (confirm("End this quiz session?")) endSession();
+  }
+});
+document.addEventListener("keydown", e => {
+  if (!session || !session.current || session.current.answered) return;
+  if (session.current.q.type !== "mc") return;
+  const n = e.key.toLowerCase();
+  const map = { a: 0, b: 1, c: 2, d: 3, 1: 0, 2: 1, 3: 2, 4: 3 };
+  if (n in map && map[n] < session.current.q.choices.length) submitAnswer(map[n]);
+});
+
+/* ============================================================
+   KHAN ACADEMY SCREENSHOT ANALYZER
+   ============================================================ */
+const API_KEY_STORE = "ged_gemini_key";
+let screenshotB64 = null;
+let screenshotMime = "image/png";
+
+// Persist API key in localStorage
+const apiKeyInput = document.getElementById("apiKeyInput");
+apiKeyInput.value = localStorage.getItem(API_KEY_STORE) || "";
+apiKeyInput.addEventListener("change", () => {
+  const v = apiKeyInput.value.trim();
+  if (v) localStorage.setItem(API_KEY_STORE, v);
+  else localStorage.removeItem(API_KEY_STORE);
+  updateAnalyzeBtn();
+});
+apiKeyInput.addEventListener("input", updateAnalyzeBtn);
+
+// Eye toggle (show/hide API key)
+document.getElementById("eyeBtn").addEventListener("click", () => {
+  const isPass = apiKeyInput.type === "password";
+  apiKeyInput.type = isPass ? "text" : "password";
+  document.getElementById("eyeBtn").textContent = isPass ? "🙈" : "👁";
+});
+
+// File drop zone
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const imgPreviewWrap = document.getElementById("imgPreviewWrap");
+const imgPreview = document.getElementById("imgPreview");
+
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const f = e.dataTransfer.files[0];
+  if (f) loadScreenshotFile(f);
+});
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) loadScreenshotFile(fileInput.files[0]);
+});
+document.getElementById("imgClear").addEventListener("click", clearScreenshot);
+
+// Paste from clipboard anywhere on page
+document.addEventListener("paste", e => {
+  const panel = document.getElementById("khanPanel");
+  if (!panel.classList.contains("open")) return;
+  const items = Array.from(e.clipboardData.items || []);
+  const img = items.find(it => it.type.startsWith("image/"));
+  if (img) { e.preventDefault(); loadScreenshotFile(img.getAsFile()); }
+});
+
+function loadScreenshotFile(file) {
+  if (!file || !file.type.startsWith("image/")) return toast("Please use an image file");
+  screenshotMime = file.type;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    screenshotB64 = dataUrl.split(",")[1];
+    imgPreview.src = dataUrl;
+    imgPreviewWrap.style.display = "block";
+    dropZone.style.display = "none";
+    document.getElementById("extractedList").style.display = "none";
+    document.getElementById("analyzeStatus").textContent = "Screenshot ready — click Analyze";
+    updateAnalyzeBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearScreenshot() {
+  screenshotB64 = null;
+  imgPreview.src = "";
+  imgPreviewWrap.style.display = "none";
+  dropZone.style.display = "block";
+  fileInput.value = "";
+  document.getElementById("extractedList").style.display = "none";
+  document.getElementById("analyzeStatus").textContent = "";
+  updateAnalyzeBtn();
+}
+
+function updateAnalyzeBtn() {
+  const hasKey = apiKeyInput.value.trim().startsWith("AIza");
+  const hasImg = !!screenshotB64;
+  const btn = document.getElementById("analyzeBtn");
+  btn.disabled = !(hasKey && hasImg);
+  if (!hasKey && !hasImg) btn.title = "Enter your API key and add a screenshot";
+  else if (!hasKey) btn.title = "Enter your Google AI Studio API key above";
+  else if (!hasImg) btn.title = "Add a screenshot first";
+  else btn.title = "";
+}
+
+// Analyze screenshot via Gemini Flash API
+document.getElementById("analyzeBtn").addEventListener("click", analyzeScreenshot);
+
+async function analyzeScreenshot() {
+  const key = apiKeyInput.value.trim();
+  if (!key.startsWith("AIza")) return toast("Enter a valid Google AI Studio API key");
+  if (!screenshotB64) return toast("Add a screenshot first");
+  localStorage.setItem(API_KEY_STORE, key);
+
+  const btn = document.getElementById("analyzeBtn");
+  const spinner = document.getElementById("analyzeSpinner");
+  const status = document.getElementById("analyzeStatus");
+  btn.disabled = true;
+  spinner.classList.add("show");
+  status.textContent = "Analyzing screenshot with Gemini…";
+  document.getElementById("extractedList").style.display = "none";
+
+  const prompt = `You are analyzing a Khan Academy screenshot to extract GED study topic mastery data.
+
+Look for any topics, skills, units, or exercises shown with their progress or mastery level.
+
+Khan Academy shows mastery in several ways:
+- Percentage numbers (e.g. "78%", "Mastered 85%")
+- Colored progress bars or circles (dark green = mastered ~100%, light green = practiced ~80%, teal/blue = familiar ~60%, purple = attempted ~30%, gray/empty = not started 0%)
+- Labels like "Mastered", "Proficient", "Familiar", "Attempted", "Not started"
+- Stars (3 stars ≈ 100%, 2 stars ≈ 65%, 1 star ≈ 30%)
+
+Map labels to approximate mastery %:
+- Mastered / 3 stars → 100
+- Proficient / Level 4 → 85
+- Familiar / Level 3 → 65
+- Attempted / Level 2 → 35
+- Not started / Level 1 → 10
+- Not started / no progress → 0
+
+Return ONLY a valid JSON array with no extra text, markdown, or explanation:
+[{"name": "Topic Name", "mastery": 75}, ...]
+
+Extract every topic visible. Use clear, concise topic names (e.g. "Adding fractions", "Linear equations", "Geometry angles"). If the same topic appears multiple times, use the highest mastery value. Return [] if no topics are found.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inlineData: { mimeType: screenshotMime, data: screenshotB64 } },
+              { text: prompt }
+            ]
+          }],
+          generationConfig: { maxOutputTokens: 1024 }
+        })
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No topic data found in the screenshot");
+
+    const extracted = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(extracted) || extracted.length === 0) {
+      status.textContent = "No topics detected — try a different screenshot";
+      return;
+    }
+
+    // Normalize and dedupe
+    const seen = new Set();
+    const clean = extracted
+      .filter(x => x && typeof x.name === "string" && x.name.trim())
+      .map(x => ({ name: x.name.trim(), mastery: clamp(Math.round(Number(x.mastery) || 0), 0, 100) }))
+      .filter(x => { if (seen.has(x.name.toLowerCase())) return false; seen.add(x.name.toLowerCase()); return true; });
+
+    renderExtracted(clean);
+    status.textContent = `Found ${clean.length} topic${clean.length === 1 ? "" : "s"} — review and import below`;
+
+  } catch (err) {
+    status.textContent = "Error: " + err.message;
+    toast("Analysis failed — " + err.message);
+  } finally {
+    btn.disabled = false;
+    spinner.classList.remove("show");
+    updateAnalyzeBtn();
+  }
+}
+
+function masteryColorHex(m) {
+  if (m < 50) return "#f87171";
+  if (m < 75) return "#fbbf24";
+  return "#34d399";
+}
+
+function renderExtracted(items) {
+  const list = document.getElementById("extractedList");
+  const container = document.getElementById("extractedItems");
+  document.getElementById("extractedCount").textContent =
+    `${items.length} topic${items.length === 1 ? "" : "s"} detected`;
+
+  container.innerHTML = items.map((it, i) => `
+    <div class="ext-item" data-idx="${i}">
+      <input type="checkbox" class="ext-check" checked />
+      <input type="text" class="ext-name" value="${escapeHtml(it.name)}" />
+      <div class="ext-mastery-wrap">
+        <input type="number" class="ext-mastery" min="0" max="100" value="${it.mastery}" />
+        <div class="ext-bar" style="background:${masteryColorHex(it.mastery)};width:${it.mastery}%"></div>
+      </div>
+      <span style="font-size:12px;color:var(--text-faint);">%</span>
+    </div>`).join("");
+
+  // Live-update bar color when mastery changes
+  container.querySelectorAll(".ext-mastery").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const v = clamp(parseInt(inp.value, 10) || 0, 0, 100);
+      const bar = inp.closest(".ext-item").querySelector(".ext-bar");
+      bar.style.width = v + "%";
+      bar.style.background = masteryColorHex(v);
+    });
+  });
+
+  // Select all toggle
+  document.getElementById("selectAllExtracted").checked = true;
+  document.getElementById("selectAllExtracted").onchange = function() {
+    container.querySelectorAll(".ext-check").forEach(c => { c.checked = this.checked; });
+  };
+
+  list.style.display = "block";
+}
+
+document.getElementById("importExtractedBtn").addEventListener("click", () => {
+  const container = document.getElementById("extractedItems");
+  let added = 0, updated = 0;
+  container.querySelectorAll(".ext-item").forEach(row => {
+    if (!row.querySelector(".ext-check").checked) return;
+    const name = row.querySelector(".ext-name").value.trim();
+    const mastery = clamp(parseInt(row.querySelector(".ext-mastery").value, 10) || 0, 0, 100);
+    if (!name) return;
+    const ex = state.topics.find(t => t.name.toLowerCase() === name.toLowerCase());
+    if (ex) { ex.mastery = mastery; updated++; }
+    else { state.topics.push(newTopic(name, mastery)); added++; }
+  });
+  saveState(); render();
+  document.getElementById("extractedList").style.display = "none";
+  clearScreenshot();
+  document.getElementById("khanPanel").classList.remove("open");
+  toast(`Imported — ${added} added, ${updated} updated`);
+});
+
+render();
+</script>
+</body>
+</html>
