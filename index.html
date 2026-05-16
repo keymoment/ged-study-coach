@@ -439,11 +439,129 @@
   .ext-mastery-wrap { display: flex; flex-direction: column; gap: 2px; }
   .import-extracted-btn { margin-top: 14px; }
 
+  /* Mistakes badge */
+  .err-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--red); color: #fff; font-size: 11px; font-weight: 700;
+    border-radius: 999px; min-width: 18px; height: 18px; padding: 0 5px;
+    margin-left: 4px; vertical-align: middle;
+  }
+  .err-badge:empty { display: none; }
+
+  /* Progress sparklines */
+  .sparkline-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px; margin-top: 4px;
+  }
+  .spark-card {
+    background: var(--bg-2); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+  }
+  .spark-card .sc-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .spark-card .sc-meta { font-size: 11px; color: var(--text-faint); margin-bottom: 8px; }
+  .spark-card svg { width: 100%; height: 48px; overflow: visible; }
+  .spark-empty { font-size: 12px; color: var(--text-faint); text-align: center; padding: 24px 0; }
+
+  /* Practice test overlay */
+  .pt-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: none; flex-direction: column;
+    z-index: 60; overflow-y: auto;
+  }
+  .pt-overlay.show { display: flex; animation: fade 0.2s ease; }
+  .pt-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--border-soft);
+    position: sticky; top: 0; background: var(--bg); z-index: 1; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pt-header h2 { font-size: 16px; font-weight: 700; }
+  .pt-meta { font-size: 13px; color: var(--text-dim); display: flex; gap: 16px; align-items: center; }
+  .pt-timer { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pt-timer.warn { color: var(--yellow); }
+  .pt-timer.danger { color: var(--red); }
+  .pt-body { max-width: 680px; width: 100%; margin: 0 auto; padding: 32px 24px 80px; }
+  .pt-subject-tag {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-faint); margin-bottom: 14px;
+  }
+  .pt-choices { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .pt-choice {
+    text-align: left; background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 13px 16px; border-radius: var(--radius-sm);
+    font-size: 15px; font-family: var(--font); cursor: pointer;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.12s ease, background 0.12s ease;
+  }
+  .pt-choice:hover { border-color: var(--accent); }
+  .pt-choice.selected { border-color: var(--accent); background: rgba(124,108,255,0.1); }
+  .pt-choice .key {
+    width: 24px; height: 24px; flex-shrink: 0; border-radius: 7px;
+    background: var(--bg-2); display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; color: var(--text-dim);
+  }
+  .pt-choice.selected .key { background: var(--accent); color: #fff; }
+  .pt-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; margin-top: 28px; flex-wrap: wrap;
+  }
+  .pt-skip { font-size: 13px; color: var(--text-faint); cursor: pointer; background: none; border: none; font-family: var(--font); }
+  .pt-skip:hover { color: var(--text-dim); }
+
+  /* Practice test launch screen */
+  .pt-launch {
+    max-width: 520px; margin: 80px auto; text-align: center; padding: 0 24px;
+  }
+  .pt-launch .big-icon { font-size: 56px; margin-bottom: 16px; }
+  .pt-launch h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .pt-launch p { color: var(--text-dim); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+  .pt-launch .pt-breakdown {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    margin-bottom: 28px; text-align: left;
+  }
+  .pt-launch .pt-bd-item {
+    background: var(--card); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+  }
+  .pt-launch .pt-bd-item .n { font-size: 20px; font-weight: 700; }
+  .pt-launch .pt-bd-item .l { font-size: 12px; color: var(--text-faint); }
+
+  /* Practice test results */
+  .pt-results { max-width: 600px; margin: 40px auto; padding: 0 24px 80px; }
+  .pt-score-hero { text-align: center; margin-bottom: 32px; }
+  .pt-score-big { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; }
+  .pt-score-big .unit { font-size: 24px; color: var(--text-dim); }
+  .pt-pass { font-size: 15px; font-weight: 700; margin-top: 6px; }
+  .pt-pass.pass { color: var(--green); }
+  .pt-pass.fail { color: var(--red); }
+  .pt-subject-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+  .pt-subject-row {
+    background: var(--card); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .pt-subject-row .sr-name { font-size: 14px; font-weight: 700; }
+  .pt-subject-row .sr-bar { flex: 1; height: 6px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
+  .pt-subject-row .sr-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+  .pt-subject-row .sr-score { font-size: 14px; font-weight: 700; min-width: 60px; text-align: right; }
+  .pt-missed { margin-top: 8px; }
+  .pt-missed summary { cursor: pointer; font-size: 13px; color: var(--text-dim); padding: 8px 0; }
+  .pt-missed-item {
+    background: var(--bg-2); border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 8px; font-size: 13px;
+  }
+  .pt-missed-item .mi-q { font-weight: 600; margin-bottom: 6px; }
+  .pt-missed-item .mi-ans { color: var(--green); }
+  .pt-missed-item .mi-exp { color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+
   @media (max-width: 760px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
     .topic { grid-template-columns: 1fr; }
     .topic .t-side { justify-content: space-between; }
     .field input[type="text"] { width: 100%; }
+    .sparkline-grid { grid-template-columns: repeat(2, 1fr); }
+    .pt-launch .pt-breakdown { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -457,8 +575,10 @@
         <p>Spaced repetition · adaptive quizzing</p>
       </div>
     </div>
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
       <button class="btn ghost sm" id="resetBtn" title="Clear all saved progress">Reset</button>
+      <button class="btn ghost sm" id="mistakesBtn">❌ Fix Mistakes<span class="err-badge" id="mistakesCount"></span></button>
+      <button class="btn ghost sm" id="practiceTestBtn">📝 Practice Test</button>
       <button class="btn primary" id="startQuizBtn">▶ Start Quiz</button>
     </div>
   </header>
@@ -472,6 +592,15 @@
   <div class="topics" id="topicList"></div>
 
   <div style="height:26px"></div>
+
+  <div class="panel" id="progressPanel">
+    <button class="panel-head" data-panel="progressPanel">
+      <span>📈 Progress over time</span><span class="chev">›</span>
+    </button>
+    <div class="panel-body">
+      <div class="sparkline-grid" id="sparklineGrid"></div>
+    </div>
+  </div>
 
   <div class="panel" id="addPanel">
     <button class="panel-head" data-panel="addPanel">
@@ -568,6 +697,19 @@ Geometry, 80"></textarea>
   </p>
 </div>
 
+<!-- Practice Test overlay -->
+<div class="pt-overlay" id="ptOverlay">
+  <div class="pt-header">
+    <h2 id="ptHeaderTitle">GED Practice Test</h2>
+    <div class="pt-meta">
+      <span id="ptProgress"></span>
+      <span class="pt-timer" id="ptTimer"></span>
+    </div>
+    <button class="x-btn" id="ptQuit">✕</button>
+  </div>
+  <div class="pt-body" id="ptBody"></div>
+</div>
+
 <!-- Quiz overlay -->
 <div class="overlay" id="overlay">
   <div class="quiz" id="quizCard"></div>
@@ -608,7 +750,8 @@ function newTopic(name, mastery) {
     correct: 0,
     total: 0,
     needsImmediateReview: false,
-    createdAt: todayStr()
+    createdAt: todayStr(),
+    history: []
   };
 }
 
@@ -618,11 +761,13 @@ function loadState() {
   let s;
   try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { s = null; }
   if (!s || !Array.isArray(s.topics)) {
-    s = { topics: DEFAULT_TOPICS.map(n => newTopic(n, 0)), studyDates: [], streak: 0 };
+    s = { topics: DEFAULT_TOPICS.map(n => newTopic(n, 0)), studyDates: [], streak: 0, wrongAnswers: [] };
     saveState(s);
   }
   if (!Array.isArray(s.studyDates)) s.studyDates = [];
   if (typeof s.streak !== "number") s.streak = 0;
+  if (!Array.isArray(s.wrongAnswers)) s.wrongAnswers = [];
+  s.topics.forEach(t => { if (!Array.isArray(t.history)) t.history = []; });
   return s;
 }
 function saveState(s = state) {
@@ -1049,6 +1194,8 @@ function render() {
     b.addEventListener("click", () => editTopic(b.getAttribute("data-edit"))));
   list.querySelectorAll("[data-del]").forEach(b =>
     b.addEventListener("click", () => deleteTopic(b.getAttribute("data-del"))));
+
+  updateMistakesBadge();
 }
 
 function escapeHtml(s) {
@@ -1136,7 +1283,8 @@ function nextQuestion() {
 function renderQuestion() {
   const { topic, diff, q } = session.current;
   const card = document.getElementById("quizCard");
-  const progressPct = Math.round((session.index / SESSION_LEN) * 100);
+  const _sessLen = session.mistakesDrill ? session.pool.length : SESSION_LEN;
+  const progressPct = Math.round((session.index / _sessLen) * 100);
 
   const choicesHtml = q.type === "mc"
     ? `<div class="choices">${q.choices.map((c, i) =>
@@ -1156,7 +1304,7 @@ function renderQuestion() {
         <span class="diff ${diff}">${diff}</span>
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
-        <span class="quiz-progress">Q ${session.index + 1} / ${SESSION_LEN}</span>
+        <span class="quiz-progress">Q ${session.index + 1} / ${_sessLen}</span>
         <button class="x-btn" id="quitQuiz" title="End session">✕</button>
       </div>
     </div>
@@ -1220,6 +1368,30 @@ function submitAnswer(given) {
   topic.lastReviewed = todayStr();
   const delta = topic.mastery - before;
 
+  // Mastery history — one entry per day, updated if reviewed again same day
+  const today = todayStr();
+  const lastH = topic.history[topic.history.length - 1];
+  if (lastH && lastH.date === today) lastH.mastery = topic.mastery;
+  else topic.history.push({ date: today, mastery: topic.mastery });
+  if (topic.history.length > 60) topic.history.shift();
+
+  // Wrong-answer tracking for Fix My Mistakes drill
+  if (!ok) {
+    const already = state.wrongAnswers.find(w => w.prompt === q.prompt);
+    if (!already) {
+      state.wrongAnswers.push({
+        id: "w_" + Math.random().toString(36).slice(2, 9),
+        topicName: topic.name, diff: session.current.diff,
+        type: q.type, prompt: q.prompt, passage: q.passage || null,
+        choices: q.choices, answerIndex: q.answerIndex,
+        answer: q.answer, explanation: q.explanation, addedAt: today
+      });
+      if (state.wrongAnswers.length > 100) state.wrongAnswers.shift();
+    }
+  } else {
+    state.wrongAnswers = state.wrongAnswers.filter(w => w.prompt !== q.prompt);
+  }
+
   if (ok) session.correct += 1;
   session.index += 1;
   const pt = session.perTopic[topic.id] || { name: topic.name, c: 0, t: 0 };
@@ -1257,36 +1429,40 @@ function submitAnswer(given) {
 
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block";
-  nb.textContent = session.index >= SESSION_LEN ? "See results →" : "Next →";
+  const sessLen = session.mistakesDrill ? session.pool.length : SESSION_LEN;
+  nb.textContent = session.index >= sessLen ? "See results →" : "Next →";
   nb.focus();
-  nb.addEventListener("click", nextQuestion);
+  nb.addEventListener("click", session.mistakesDrill ? nextMistakeQuestion : nextQuestion);
   document.querySelector(".quiz-foot .score").textContent = `Score: ${session.correct} / ${session.index}`;
   render(); // live-update dashboard underneath
 }
 
 function showResults() {
   const card = document.getElementById("quizCard");
-  const pct = Math.round((session.correct / SESSION_LEN) * 100);
+  const totalQ = session.mistakesDrill ? session.pool.length : SESSION_LEN;
+  const pct = Math.round((session.correct / totalQ) * 100);
   const msg = pct >= 80 ? "Excellent work! 🎯" : pct >= 50 ? "Solid progress — keep going." : "Tough set — that's how mastery is built.";
   const rows = Object.values(session.perTopic).map(p =>
     `<div class="ri"><span>${escapeHtml(p.name)}</span><span>${p.c}/${p.t} correct</span></div>`).join("");
   card.innerHTML = `
     <div class="results">
       <div class="big">${pct}<span class="unit">%</span></div>
-      <h3>Session complete</h3>
+      <h3>${session.mistakesDrill ? "Drill complete" : "Session complete"}</h3>
       <p>${msg}</p>
       <div class="rstats">
-        <div><span class="rv">${session.correct}/${SESSION_LEN}</span><span class="rl">Correct</span></div>
+        <div><span class="rv">${session.correct}/${totalQ}</span><span class="rl">Correct</span></div>
         <div><span class="rv">${state.streak}</span><span class="rl">Day streak</span></div>
         <div><span class="rv">${totals().acc}%</span><span class="rl">Overall acc</span></div>
       </div>
       <div class="rlist">${rows}</div>
       <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;">
-        <button class="btn primary" id="againBtn">Study again</button>
+        <button class="btn primary" id="againBtn">${session.mistakesDrill ? "Drill again" : "Study again"}</button>
         <button class="btn ghost" id="doneBtn">Done</button>
       </div>
     </div>`;
-  document.getElementById("againBtn").addEventListener("click", () => startQuiz(session.forcedTopicId));
+  const _wasMistakesDrill = session.mistakesDrill;
+  document.getElementById("againBtn").addEventListener("click", () =>
+    _wasMistakesDrill ? startMistakesDrill() : startQuiz(session.forcedTopicId));
   document.getElementById("doneBtn").addEventListener("click", endSession);
   render();
 }
@@ -1385,6 +1561,308 @@ document.addEventListener("keydown", e => {
   const n = e.key.toLowerCase();
   const map = { a: 0, b: 1, c: 2, d: 3, 1: 0, 2: 1, 3: 2, 4: 3 };
   if (n in map && map[n] < session.current.q.choices.length) submitAnswer(map[n]);
+});
+
+/* ============================================================
+   PROGRESS SPARKLINES
+   ============================================================ */
+function renderSparklines() {
+  const grid = document.getElementById("sparklineGrid");
+  const topics = state.topics.filter(t => t.history.length >= 2);
+  if (!topics.length) {
+    grid.innerHTML = `<p class="spark-empty">Study at least two sessions to see progress charts here.</p>`;
+    return;
+  }
+  grid.innerHTML = topics.map(t => {
+    const h = t.history;
+    const W = 200, H = 48, pad = 4;
+    const xs = h.map((_, i) => pad + (i / Math.max(h.length - 1, 1)) * (W - pad * 2));
+    const ys = h.map(p => H - pad - (p.mastery / 100) * (H - pad * 2));
+    const pts = xs.map((x, i) => `${x},${ys[i]}`).join(" ");
+    const fillPts = `${xs[0]},${H} ` + pts + ` ${xs[xs.length-1]},${H}`;
+    const col = masteryColorVar(t.mastery);
+    const delta = h.length >= 2 ? t.mastery - h[0].mastery : 0;
+    const arrow = delta > 0 ? `▲ +${delta}%` : delta < 0 ? `▼ ${delta}%` : "—";
+    const arrowCol = delta > 0 ? "var(--green)" : delta < 0 ? "var(--red)" : "var(--text-faint)";
+    return `<div class="spark-card">
+      <div class="sc-name">${escapeHtml(t.name)}</div>
+      <div class="sc-meta">${t.mastery}% mastery · <span style="color:${arrowCol};font-weight:700">${arrow}</span> overall</div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="g${t.id}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${col}" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${fillPts}" fill="url(#g${t.id})"/>
+        <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${xs[xs.length-1]}" cy="${ys[ys.length-1]}" r="3" fill="${col}"/>
+      </svg>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   FIX MY MISTAKES DRILL
+   ============================================================ */
+function updateMistakesBadge() {
+  document.getElementById("mistakesCount").textContent =
+    state.wrongAnswers.length ? String(state.wrongAnswers.length) : "";
+}
+
+function startMistakesDrill() {
+  if (!state.wrongAnswers.length) return toast("No mistakes recorded yet — keep studying!");
+  // Build a fake session using wrong-answer questions
+  const pool = [...state.wrongAnswers].sort(() => Math.random() - 0.5).slice(0, SESSION_LEN);
+  session = {
+    forcedTopicId: null, index: 0, correct: 0,
+    perTopic: {}, current: null, lastTopicId: null, repeatRun: 0,
+    mistakesDrill: true, pool
+  };
+  document.getElementById("overlay").classList.add("show");
+  nextMistakeQuestion();
+}
+
+function nextMistakeQuestion() {
+  if (session.index >= session.pool.length) return showResults();
+  const w = session.pool[session.index];
+  // Find or fake a topic object
+  const topic = state.topics.find(t => t.name === w.topicName)
+    || { id: w.id, name: w.topicName, mastery: 0, reviewCount: 0, correct: 0, total: 0,
+         needsImmediateReview: false, lastReviewed: null, history: [] };
+  session.current = { topic, diff: w.diff, q: w, answered: false };
+  renderQuestion();
+}
+
+/* ============================================================
+   PRACTICE TEST
+   ============================================================ */
+const PT_PLAN = [
+  { subject: "Math", topics: ["Arithmetic","Fractions","Decimals","Percentages","Algebra","Geometry"], perTopic: 3 },
+  { subject: "Reading & Writing", topics: ["Reading Comprehension","Writing"], perTopic: 4 },
+  { subject: "Science", topics: ["Science"], perTopic: 5 },
+  { subject: "Social Studies", topics: ["Social Studies"], perTopic: 5 }
+];
+const PT_PASS_PCT = 65;
+const PT_DURATION = 75 * 60; // 75 minutes in seconds
+let ptState = null;
+let ptTimerInterval = null;
+
+function buildPracticeTest() {
+  const qs = [];
+  PT_PLAN.forEach(group => {
+    group.topics.forEach(tname => {
+      const diffs = ["easy","medium","medium","hard"];
+      for (let i = 0; i < group.perTopic; i++) {
+        const diff = diffs[i % diffs.length];
+        const q = generateQuestion(tname, diff);
+        qs.push({ subject: group.subject, topicName: tname, diff, ...q });
+      }
+    });
+  });
+  return qs;
+}
+
+function openPracticeTest() {
+  ptState = {
+    qs: buildPracticeTest(),
+    answers: [],   // index into choices, or null for skipped
+    index: 0,
+    secondsLeft: PT_DURATION,
+    done: false
+  };
+  ptState.answers = new Array(ptState.qs.length).fill(null);
+  document.getElementById("ptOverlay").classList.add("show");
+  renderPTLaunch();
+}
+
+function renderPTLaunch() {
+  const total = ptState.qs.length;
+  const counts = {};
+  PT_PLAN.forEach(g => {
+    counts[g.subject] = (counts[g.subject] || 0) + g.topics.length * g.perTopic;
+  });
+  document.getElementById("ptHeaderTitle").textContent = "GED Practice Test";
+  document.getElementById("ptProgress").textContent = "";
+  document.getElementById("ptTimer").textContent = "";
+  document.getElementById("ptBody").innerHTML = `
+    <div class="pt-launch">
+      <div class="big-icon">📝</div>
+      <h2>GED Practice Test</h2>
+      <p>${total} questions across all four GED subjects.<br>
+         75-minute countdown. No feedback until the end.<br>
+         Passing score: ${PT_PASS_PCT}%</p>
+      <div class="pt-breakdown">
+        ${PT_PLAN.map(g => `
+          <div class="pt-bd-item">
+            <div class="n">${g.topics.length * g.perTopic}</div>
+            <div class="l">${g.subject}</div>
+          </div>`).join("")}
+      </div>
+      <button class="btn primary" id="ptStartBtn" style="width:100%;padding:14px;">Start Test</button>
+    </div>`;
+  document.getElementById("ptStartBtn").addEventListener("click", startPTQuestions);
+}
+
+function startPTQuestions() {
+  ptTimerInterval = setInterval(() => {
+    ptState.secondsLeft--;
+    updatePTTimer();
+    if (ptState.secondsLeft <= 0) { clearInterval(ptTimerInterval); submitPracticeTest(); }
+  }, 1000);
+  renderPTQuestion();
+}
+
+function updatePTTimer() {
+  const s = ptState.secondsLeft;
+  const m = Math.floor(s / 60), sec = s % 60;
+  const el = document.getElementById("ptTimer");
+  el.textContent = `${m}:${String(sec).padStart(2, "0")}`;
+  el.className = "pt-timer" + (s < 300 ? " danger" : s < 600 ? " warn" : "");
+}
+
+function renderPTQuestion() {
+  const { qs, answers, index } = ptState;
+  const q = qs[index];
+  document.getElementById("ptHeaderTitle").textContent = q.subject;
+  document.getElementById("ptProgress").textContent = `Q ${index + 1} / ${qs.length}`;
+  updatePTTimer();
+
+  const choicesHtml = q.type === "mc"
+    ? `<div class="pt-choices">${q.choices.map((c, i) => `
+        <button class="pt-choice ${answers[index] === i ? "selected" : ""}" data-i="${i}">
+          <span class="key">${String.fromCharCode(65 + i)}</span>
+          <span>${escapeHtml(c)}</span>
+        </button>`).join("")}</div>`
+    : `<div class="fib-wrap" style="margin-top:18px;">
+         <input type="text" id="ptFibInput" placeholder="Type your answer…" value="${answers[index] !== null ? answers[index] : ""}" />
+       </div>`;
+
+  document.getElementById("ptBody").innerHTML = `
+    <div class="pt-subject-tag">${escapeHtml(q.subject)} · ${q.diff}</div>
+    ${q.passage ? `<div class="passage">${escapeHtml(q.passage)}</div>` : ""}
+    <div class="question">${escapeHtml(q.prompt)}</div>
+    ${choicesHtml}
+    <div class="pt-foot">
+      <button class="pt-skip" id="ptSkip">${index > 0 ? "← Back" : "Skip"}</button>
+      <button class="btn primary" id="ptNext">
+        ${index < qs.length - 1 ? "Next →" : "Submit Test"}
+      </button>
+    </div>`;
+
+  if (q.type === "mc") {
+    document.querySelectorAll(".pt-choice").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ptState.answers[index] = parseInt(btn.getAttribute("data-i"), 10);
+        document.querySelectorAll(".pt-choice").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        btn.querySelector(".key").style.background = "var(--accent)";
+        btn.querySelector(".key").style.color = "#fff";
+      });
+    });
+  } else {
+    const fib = document.getElementById("ptFibInput");
+    if (fib) fib.addEventListener("input", () => { ptState.answers[index] = fib.value; });
+  }
+
+  document.getElementById("ptNext").addEventListener("click", () => {
+    if (q.type === "fib") {
+      const fib = document.getElementById("ptFibInput");
+      if (fib) ptState.answers[index] = fib.value.trim() || null;
+    }
+    if (index < qs.length - 1) { ptState.index++; renderPTQuestion(); }
+    else submitPracticeTest();
+  });
+
+  document.getElementById("ptSkip").addEventListener("click", () => {
+    if (index > 0) { ptState.index--; renderPTQuestion(); }
+    else { ptState.answers[index] = null; if (index < qs.length - 1) { ptState.index++; renderPTQuestion(); } }
+  });
+}
+
+function submitPracticeTest() {
+  clearInterval(ptTimerInterval);
+  ptState.done = true;
+  // Grade
+  const { qs, answers } = ptState;
+  const results = qs.map((q, i) => {
+    const given = answers[i];
+    let ok = false;
+    if (given === null) ok = false;
+    else if (q.type === "mc") ok = given === q.answerIndex;
+    else ok = normalize(given) === normalize(q.answerNorm != null ? q.answerNorm : q.answer);
+    return { ...q, given, ok };
+  });
+
+  const total = results.length;
+  const correct = results.filter(r => r.ok).length;
+  const pct = Math.round((correct / total) * 100);
+  const passed = pct >= PT_PASS_PCT;
+
+  // Per-subject breakdown
+  const subjects = {};
+  results.forEach(r => {
+    if (!subjects[r.subject]) subjects[r.subject] = { c: 0, t: 0, missed: [] };
+    subjects[r.subject].t++;
+    if (r.ok) subjects[r.subject].c++;
+    else subjects[r.subject].missed.push(r);
+  });
+
+  document.getElementById("ptHeaderTitle").textContent = "Test Results";
+  document.getElementById("ptProgress").textContent = `${correct} / ${total} correct`;
+  document.getElementById("ptTimer").textContent = "";
+  document.getElementById("ptBody").innerHTML = `
+    <div class="pt-results">
+      <div class="pt-score-hero">
+        <div class="pt-score-big">${pct}<span class="unit">%</span></div>
+        <div class="pt-pass ${passed ? "pass" : "fail"}">${passed ? "✓ Passing score" : "✗ Below passing — keep studying!"}</div>
+      </div>
+      <div class="pt-subject-rows">
+        ${Object.entries(subjects).map(([subj, d]) => {
+          const p = Math.round((d.c / d.t) * 100);
+          const col = p < 50 ? "var(--red)" : p < 75 ? "var(--yellow)" : "var(--green)";
+          return `<div class="pt-subject-row">
+            <span class="sr-name">${escapeHtml(subj)}</span>
+            <div class="sr-bar"><div class="sr-fill" style="width:${p}%;background:${col}"></div></div>
+            <span class="sr-score" style="color:${col}">${d.c}/${d.t}</span>
+          </div>
+          ${d.missed.length ? `<details class="pt-missed">
+            <summary>▸ Review ${d.missed.length} missed question${d.missed.length > 1 ? "s" : ""} in ${escapeHtml(subj)}</summary>
+            ${d.missed.map(r => `<div class="pt-missed-item">
+              <div class="mi-q">${escapeHtml(r.prompt)}</div>
+              <div class="mi-ans">✓ ${escapeHtml(r.answer)}</div>
+              <div class="mi-exp">${escapeHtml(r.explanation)}</div>
+            </div>`).join("")}
+          </details>` : ""}`;
+        }).join("")}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn primary" id="ptRetry">Retake Test</button>
+        <button class="btn ghost" id="ptClose">Back to Dashboard</button>
+      </div>
+    </div>`;
+
+  document.getElementById("ptRetry").addEventListener("click", () => { openPracticeTest(); });
+  document.getElementById("ptClose").addEventListener("click", closePracticeTest);
+}
+
+function closePracticeTest() {
+  clearInterval(ptTimerInterval);
+  ptState = null;
+  document.getElementById("ptOverlay").classList.remove("show");
+}
+
+document.getElementById("ptQuit").addEventListener("click", () => {
+  if (ptState && ptState.done) return closePracticeTest();
+  if (confirm("End the practice test? Your answers won't be saved.")) closePracticeTest();
+});
+document.getElementById("practiceTestBtn").addEventListener("click", openPracticeTest);
+document.getElementById("mistakesBtn").addEventListener("click", startMistakesDrill);
+
+// Render sparklines when Progress panel opens
+document.querySelector("#progressPanel .panel-head").addEventListener("click", () => {
+  const wasOpen = document.getElementById("progressPanel").classList.contains("open");
+  if (!wasOpen) setTimeout(renderSparklines, 50);
 });
 
 /* ============================================================
